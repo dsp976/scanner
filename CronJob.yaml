@@ -1,0 +1,39 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: scanner
+spec:
+  schedule: "*/30 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: scanner
+        spec:
+          containers:
+          - name: scanner
+            image: dsp976/sonar-scanner:cj
+            env:
+            - name: GIT_REPO
+              value: https://github.com/SonarSource/sonar-scanning-examples.git
+            - name: GIT_LOCAL
+              value: /tmp/sonar-scanning-examples/
+            - name: SRC
+              value: /tmp/sonar-scanning-examples/sonarqube-scanner/src/python
+            - name: SONAR_HOST
+              value: http://10.111.188.35:9000
+            - name: PROJECT_KEY
+              value: test_project
+            - name: SONAR_LOGIN
+              value: 165a03d60332be8d7db1dc5ca631139df0bf9df9
+            command: ["bash"]
+            args: ["-c",  "rm -fr $GIT_LOCAL;      
+                git clone $GIT_REPO $GIT_LOCAL;
+                echo \"sonar.host.url=$SONAR_HOST\" >> $SONAR_HOME/conf/sonar-scanner.properties;
+                sonar-scanner \        
+                -Dsonar.projectKey=$PROJECT_KEY \
+                -Dsonar.sources=$SRC \          
+                -Dsonar.host.url=$SONAR_HOST \  
+                -Dsonar.login=$SONAR_LOGIN"]
+
+          restartPolicy: Never
